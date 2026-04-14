@@ -3,6 +3,7 @@
 **ROBOROVER** is a semi-autonomous Automated Guided Vehicle (AGV) powered by the **ESP32**. It features a dual-mode operation system: high-precision manual steering via a web-based BLE joystick dashboard and fully autonomous PID-based line following with obstacle avoidance.
 
 ---
+DASHBOARD LINK: https://DimpalMahitkar.github.io/ROBOROVER/
 
 ## 🚀 Key Features
 
