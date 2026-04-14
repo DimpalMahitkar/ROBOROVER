@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ROBOROVER | Premium Controller</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>ROBOROVER | Premium Control Pad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #00d2ff;
@@ -13,115 +13,135 @@
             --card: rgba(255, 255, 255, 0.05);
             --text: #ffffff;
             --subtext: #888;
-            --shadow: rgba(0, 210, 255, 0.2);
+            --btn-bg: rgba(255, 255, 255, 0.08);
             --font: 'Outfit', sans-serif;
         }
 
         [data-theme="light"] {
             --primary: #00a8cc;
             --bg: #f0f4f8;
-            --card: rgba(255, 255, 255, 0.7);
+            --card: rgba(255, 255, 255, 0.8);
             --text: #1a202c;
             --subtext: #4a5568;
-            --shadow: rgba(0, 168, 204, 0.1);
+            --btn-bg: rgba(0, 0, 0, 0.05);
         }
 
-        * { margin:0; padding:0; box-sizing:border-box; touch-action:none; -webkit-tap-highlight-color: transparent; }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
         body { 
             font-family: var(--font); background: var(--bg); color: var(--text); 
             height: 100vh; display: flex; align-items: center; justify-content: center;
-            transition: background 0.5s ease;
+            transition: background 0.4s; overflow: hidden;
         }
 
         .dashboard {
-            width: 90%; max-width: 450px; padding: 25px; border-radius: 40px;
+            width: 92%; max-width: 420px; padding: 25px; border-radius: 35px;
             background: var(--card); backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 60px rgba(0,0,0,0.2);
             display: flex; flex-direction: column; gap: 20px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
         }
 
         .hdr { display: flex; justify-content: space-between; align-items: center; }
         .theme-toggle {
-            width: 44px; height: 24px; background: rgba(0,0,0,0.2); border-radius: 12px;
+            width: 48px; height: 26px; background: rgba(0,0,0,0.2); border-radius: 13px;
             position: relative; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
         }
         .theme-toggle::after {
-            content: ""; position: absolute; left: 2px; top: 2px;
-            width: 20px; height: 20px; background: #fff; border-radius: 50%;
-            transition: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            content: "🌙"; position: absolute; left: 3px; top: 2px;
+            width: 20px; height: 20px; border-radius: 50%; background: #fff;
+            display: flex; align-items: center; justify-content: center; font-size: 12px;
+            transition: 0.3s;
         }
-        [data-theme="light"] .theme-toggle::after { transform: translateX(20px); }
+        [data-theme="light"] .theme-toggle::after { transform: translateX(22px); content: "☀️"; }
 
-        .stats { display: flex; gap: 15px; }
+        .stats { display: flex; gap: 12px; }
         .stat-card {
-            flex: 1; padding: 18px; background: rgba(0,0,0,0.08); border-radius: 25px;
+            flex: 1; padding: 15px; background: rgba(0,0,0,0.05); border-radius: 20px;
             text-align: center; border: 1px solid rgba(255,255,255,0.05);
         }
-        .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--subtext); }
-        .stat-val { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin-top: 4px; }
+        .stat-label { font-size: 0.65rem; text-transform: uppercase; color: var(--subtext); }
+        .stat-val { font-size: 1.3rem; font-weight: 700; color: var(--primary); margin-top: 5px; }
 
-        .ctrl-area { height: 280px; display: flex; align-items: center; justify-content: center; position: relative; }
-        #joy-outer {
-            width: 200px; height: 200px; border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.1) 100%);
-            border: 2px solid rgba(255,255,255,0.05);
-            position: relative; display: flex; align-items: center; justify-content: center;
+        /* Directional Pad */
+        .dpad-container {
+            display: grid;
+            grid-template-areas: ". up ." "left . right" ". down .";
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            perspective: 800px;
         }
-        #joy-knob {
-            width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), #00ffcc);
-            border-radius: 50%; box-shadow: 0 10px 30px var(--shadow);
-            position: absolute; transition: transform 0.05s linear;
+
+        .d-btn {
+            width: 80px; height: 80px;
+            background: var(--btn-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: var(--text);
+            font-size: 1.8rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
         }
-        .disabled { opacity: 0.3; pointer-events: none; }
+
+        .d-btn:active, .d-btn.pressing {
+            transform: translateY(4px);
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 25px var(--primary);
+            border-color: var(--primary);
+        }
 
         .btn-group { display: flex; gap: 10px; }
         .m-btn {
-            flex: 1; padding: 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(0,0,0,0.2); color: var(--subtext);
-            font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: 0.3s;
+            flex: 1; padding: 15px; border-radius: 18px; border: none;
+            background: rgba(0,0,0,0.1); color: var(--subtext);
+            font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.3s;
         }
-        .m-btn.active { background: var(--primary); color: #000; border-color: var(--primary); box-shadow: 0 0 20px var(--shadow); }
+        .m-btn.active { background: var(--primary); color: #000; }
 
         .stop-btn {
             width: 100%; padding: 22px; border-radius: 25px; border: none;
             background: var(--accent); color: #fff; font-size: 1.1rem; font-weight: 700;
-            letter-spacing: 1px; cursor: pointer; transition: 0.2s;
+            letter-spacing: 2px; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 10px 30px rgba(255, 0, 85, 0.2);
         }
-        .stop-btn:active { transform: scale(0.95); opacity: 0.8; }
+        .stop-btn:active { transform: scale(0.95); opacity: 0.9; }
 
         #conn-msg {
             position: fixed; top: 0; left: 0; width: 100%; padding: 12px;
-            background: var(--primary); color: #fff; text-align: center; font-weight: 700;
-            cursor: pointer; z-index: 1000; transition: 0.4s;
+            background: var(--primary); color: #000; text-align: center; font-weight: 700;
+            cursor: pointer; z-index: 1000; transition: 0.5s;
         }
         .hidden { transform: translateY(-100%); }
     </style>
 </head>
 <body data-theme="dark">
-    <div id="conn-msg">CLICK TO ESTABLISH LINK</div>
+    <div id="conn-msg">TAP TO CONNECT ROBOROVER</div>
 
     <div class="dashboard">
         <div class="hdr">
-            <h2 style="font-weight: 300;">ROBO<span style="font-weight: 700; color: var(--primary);">ROVER</span></h2>
+            <h2 style="font-weight: 300;">ROBO<span style="font-weight: 700; color: var(--primary);">PAD</span></h2>
             <div class="theme-toggle" id="theme-btn"></div>
         </div>
 
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-label">System Mode</div>
-                <div class="stat-val" id="mode-text">IDLE</div>
+                <div class="stat-label">Mode</div>
+                <div class="stat-val" id="mode-text">OFFLINE</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Obstacle</div>
+                <div class="stat-label">Proximity</div>
                 <div class="stat-val" id="dist-text">--</div>
             </div>
         </div>
 
-        <div class="ctrl-area" id="ctrl-shield">
-            <div id="joy-outer">
-                <div id="joy-knob"></div>
-            </div>
+        <div class="dpad-container" id="dpad">
+            <button class="d-btn" style="grid-area: up" data-cmd="F">▲</button>
+            <button class="d-btn" style="grid-area: left" data-cmd="L">◀</button>
+            <button class="d-btn" style="grid-area: right" data-cmd="R">▶</button>
+            <button class="d-btn" style="grid-area: down" data-cmd="B">▼</button>
         </div>
 
         <div class="btn-group">
@@ -129,13 +149,13 @@
             <button class="m-btn" id="btn-auto" onclick="send('A')">AI AUTO</button>
         </div>
 
-        <button class="stop-btn" onclick="send('S')">HALT ROBOT</button>
+        <button class="stop-btn" onclick="send('S')">IMMEDIATE HALT</button>
     </div>
 
     <script>
         const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
         const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
-        let device, char, currentMode = 'M', lastCmd = 'S';
+        let device, char, currentMode = 'M';
 
         // Theme Toggle
         document.getElementById('theme-btn').onclick = () => {
@@ -161,65 +181,45 @@
                         document.getElementById('mode-text').innerText = data.replace("MSG:", "");
                     } else {
                         const [mode, dist] = data.split(',');
-                        syncMode(mode);
+                        currentMode = mode;
+                        document.getElementById('mode-text').innerText = mode == 'M' ? "MANUAL" : "AUTO";
                         document.getElementById('dist-text').innerText = dist + "cm";
+                        document.getElementById('btn-auto').classList.toggle('active', mode === 'A');
+                        document.getElementById('btn-manual').classList.toggle('active', mode === 'M');
                     }
                 });
-            } catch (e) { alert("BLE Link: " + e.message); }
+            } catch (e) { alert("Connect Error: " + e.message); }
         }
         document.getElementById('conn-msg').onclick = connect;
 
-        function syncMode(m) {
-            currentMode = m;
-            const isAuto = m === 'A';
-            document.getElementById('btn-auto').classList.toggle('active', isAuto);
-            document.getElementById('btn-manual').classList.toggle('active', !isAuto);
-            document.getElementById('ctrl-shield').classList.toggle('disabled', isAuto);
-            document.getElementById('mode-text').innerText = isAuto ? "AUTONOMOUS" : "MANUAL";
-        }
+        // D-Pad Control Logic
+        const btns = document.querySelectorAll('.d-btn');
+        let currentCmd = 'S';
 
-        // Joystick
-        const outer = document.getElementById('joy-outer');
-        const knob = document.getElementById('joy-knob');
-        let moveActive = false;
+        btns.forEach(btn => {
+            const start = (e) => {
+                if(currentMode === 'A') return;
+                e.preventDefault();
+                const cmd = btn.getAttribute('data-cmd');
+                if(cmd !== currentCmd) {
+                    currentCmd = cmd;
+                    send(cmd);
+                    btn.classList.add('pressing');
+                }
+            };
+            const stop = (e) => {
+                e.preventDefault();
+                currentCmd = 'S';
+                send('S');
+                btn.classList.remove('pressing');
+            };
 
-        const handleStart = (e) => { if(currentMode === 'A') return; moveActive = true; handleMove(e); }
-        const handleEnd = () => { 
-            if(!moveActive) return;
-            moveActive = false; 
-            knob.style.transform = `translate(0,0)`;
-            send('S');
-        }
-
-        const handleMove = (e) => {
-            if(!moveActive || currentMode === 'A') return;
-            const touch = e.touches ? e.touches[0] : e;
-            const rect = outer.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            const x = touch.clientX - cx;
-            const y = touch.clientY - cy;
-
-            const limit = rect.width / 2 - 40;
-            const dist = Math.min(Math.sqrt(x*x + y*y), limit);
-            const angle = Math.atan2(y, x);
-            
-            knob.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
-
-            let cmd = 'S';
-            if (dist > limit * 0.4) {
-                const deg = angle * 180 / Math.PI;
-                if (deg > -135 && deg < -45) cmd = 'F';
-                else if (deg > 45 && deg < 135) cmd = 'B';
-                else if (deg >= -45 && deg <= 45) cmd = 'R';
-                else cmd = 'L';
-            }
-            if(cmd !== lastCmd) { lastCmd = cmd; send(cmd); }
-        }
-
-        outer.addEventListener('touchstart', handleStart);
-        window.addEventListener('touchmove', handleMove);
-        window.addEventListener('touchend', handleEnd);
+            btn.addEventListener('touchstart', start);
+            btn.addEventListener('touchend', stop);
+            btn.addEventListener('mousedown', start);
+            btn.addEventListener('mouseup', stop);
+            btn.addEventListener('mouseleave', stop);
+        });
 
         async function send(cmd) {
             if(!char) return;
