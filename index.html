@@ -119,6 +119,11 @@
             </div>
         </div>
 
+        <div class="log-container" style="margin-bottom: 3vh; padding: 15px; border-radius: clamp(15px, 4vw, 25px); background: rgba(0,210,255,0.05); border: 1px solid rgba(0,210,255,0.15); text-align: center;">
+            <div style="font-size: var(--font-sm); text-transform: uppercase; color: var(--sub); letter-spacing: 1.5px; opacity: 0.8; margin-bottom: 5px;">System Console</div>
+            <div id="log-box" style="font-size: var(--font-sm); font-weight: 600; color: var(--primary); font-family: monospace; letter-spacing: 1px;">AWAITING LINK...</div>
+        </div>
+
         <div class="dpad" id="main-pad">
             <button class="d-btn" style="grid-area: up" id="up">▲</button>
             <button class="d-btn" style="grid-area: left" id="left">◀</button>
@@ -149,13 +154,20 @@
                 charDirect.startNotifications();
                 charDirect.addEventListener('characteristicvaluechanged', (e) => {
                     const str = new TextDecoder().decode(e.target.value);
-                    const [m, d] = str.split(',');
-                    currentM = m;
-                    document.getElementById('m-txt').innerText = m === 'M' ? "MANUAL" : "AUTO";
-                    document.getElementById('d-txt').innerText = d + "cm";
-                    document.getElementById('mode-a').classList.toggle('active', m === 'A');
-                    document.getElementById('mode-m').classList.toggle('active', m === 'M');
-                    document.getElementById('main-pad').classList.toggle('disabled', m === 'A');
+                    if (str.startsWith("MSG:")) {
+                        const msg = str.substring(4);
+                        document.getElementById('log-box').innerText = "> " + msg;
+                    } else {
+                        const [m, d] = str.split(',');
+                        if (d !== undefined) {
+                            currentM = m;
+                            document.getElementById('m-txt').innerText = m === 'M' ? "MANUAL" : "AUTO";
+                            document.getElementById('d-txt').innerText = d + "cm";
+                            document.getElementById('mode-a').classList.toggle('active', m === 'A');
+                            document.getElementById('mode-m').classList.toggle('active', m === 'M');
+                            document.getElementById('main-pad').classList.toggle('disabled', m === 'A');
+                        }
+                    }
                 });
             } catch (err) { console.error(err); }
         }
