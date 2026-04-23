@@ -143,13 +143,24 @@
         const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
         const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
         let charDirect, currentM = 'M';
+        let bleDevice = null;
 
         async function connect() {
             try {
-                const device = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ROBOROVER_BLE' }], optionalServices: [SERVICE_UUID] });
-                const server = await device.gatt.connect();
+                if (!bleDevice) {
+                    bleDevice = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ROBOROVER_BLE' }], optionalServices: [SERVICE_UUID] });
+                    // Handle spontaneous disconnections seamlessly
+                    bleDevice.addEventListener('gattserverdisconnected', () => {
+                        document.getElementById('conn-msg').innerText = "LINK LOST - TAP TO RECONNECT";
+                        document.getElementById('conn-msg').classList.remove('hidden');
+                        document.getElementById('log-box').innerText = "SYSTEM OFFLINE";
+                        charDirect = null;
+                    });
+                }
+                const server = await bleDevice.gatt.connect();
                 const service = await server.getPrimaryService(SERVICE_UUID);
                 charDirect = await service.getCharacteristic(CHAR_UUID);
+                
                 document.getElementById('conn-msg').classList.add('hidden');
                 charDirect.startNotifications();
                 charDirect.addEventListener('characteristicvaluechanged', (e) => {
@@ -182,9 +193,28 @@
         };
         bindControl('up', 'F'); bindControl('down', 'B'); bindControl('left', 'L'); bindControl('right', 'R');
 
+        let isWriting = false;
+        let msgQueue = [];
+        
         async function send(msg) {
             if(!charDirect) return;
-            try { await charDirect.writeValue(new TextEncoder().encode(msg)); } catch(exc) {}
+            
+            // Queue the latest message. Overwrite array to prevent massive backlog latency
+            msgQueue = [msg]; 
+            
+            if(isWriting) return;
+            isWriting = true;
+            
+            while(msgQueue.length > 0) {
+                let toSend = msgQueue.shift();
+                try { 
+                    // Safely dispatch to ESP32 buffer
+                    await charDirect.writeValue(new TextEncoder().encode(toSend)); 
+                } catch(exc) { 
+                    console.error("BLE Write Error: ", exc); 
+                }
+            }
+            isWriting = false;
         }
     </script>
 </body>
