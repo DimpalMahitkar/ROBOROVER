@@ -142,20 +142,15 @@
     <script>
         const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
         const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
-        let charDirect, currentM = 'M', myDevice;
+        let charDirect, currentM = 'M';
 
         async function connect() {
             try {
-                if (!myDevice) {
-                    myDevice = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ROBOROVER_BLE' }], optionalServices: [SERVICE_UUID] });
-                    myDevice.addEventListener('gattserverdisconnected', handleDisconnect);
-                }
-                const server = await myDevice.gatt.connect();
+                const device = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ROBOROVER_BLE' }], optionalServices: [SERVICE_UUID] });
+                const server = await device.gatt.connect();
                 const service = await server.getPrimaryService(SERVICE_UUID);
                 charDirect = await service.getCharacteristic(CHAR_UUID);
                 document.getElementById('conn-msg').classList.add('hidden');
-                document.getElementById('log-box').innerText = "> SYSTEM LINK SECURED";
-                
                 charDirect.startNotifications();
                 charDirect.addEventListener('characteristicvaluechanged', (e) => {
                     const str = new TextDecoder().decode(e.target.value);
@@ -176,14 +171,6 @@
                 });
             } catch (err) { console.error(err); }
         }
-
-        function handleDisconnect() {
-            document.getElementById('conn-msg').innerText = "CONNECTION LOST - AUTO RECONNECTING...";
-            document.getElementById('conn-msg').classList.remove('hidden');
-            document.getElementById('log-box').innerText = "> BLUETOOTH DROPPED!";
-            setTimeout(connect, 2000); // Attempt auto-reconnect without prompting user
-        }
-
         document.getElementById('conn-msg').onclick = connect;
 
         const bindControl = (id, c) => {
@@ -195,24 +182,9 @@
         };
         bindControl('up', 'F'); bindControl('down', 'B'); bindControl('left', 'L'); bindControl('right', 'R');
 
-        let writeQueue = [];
-        let isWriting = false;
-
-        async function processQueue() {
-            if (isWriting || writeQueue.length === 0 || !charDirect) return;
-            isWriting = true;
-            const msg = writeQueue.shift();
-            try { 
-                // Write without response completely eliminates the "Operation in progress" lag bug!
-                await charDirect.writeValueWithoutResponse(new TextEncoder().encode(msg)); 
-            } catch(exc) { console.log("BLE Queue Dropped:", exc); }
-            isWriting = false;
-            processQueue();
-        }
-
-        function send(msg) {
-            writeQueue.push(msg);
-            processQueue();
+        async function send(msg) {
+            if(!charDirect) return;
+            try { await charDirect.writeValue(new TextEncoder().encode(msg)); } catch(exc) {}
         }
     </script>
 </body>
