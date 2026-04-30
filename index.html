@@ -3,139 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ROBOROVER AI | Neural Command Center</title>
+    <title>ROBOROVER | AI Command Center</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #00d2ff; --accent: #ff0055; --bg: #0b111a;
             --card: rgba(255, 255, 255, 0.04); --text: #ffffff; --sub: #8892b0;
-            --neural: #00ffaa; /* New Neural Color */
+            --neural-glow: rgba(0, 210, 255, 0.3);
             --btn-size: clamp(65px, 15vmin, 100px);
             --font-lg: clamp(1.2rem, 3.5vmin, 1.8rem);
             --font-sm: clamp(0.7rem, 2vmin, 0.9rem);
         }
         [data-theme="light"] {
-            --primary: #0060df; --bg: #f8fafc; --card: rgba(255, 255, 255, 0.85); --text: #0f172a; --sub: #64748b; --neural: #00a870;
+            --primary: #0060df; --bg: #f8fafc; --card: rgba(255, 255, 255, 0.85); --text: #0f172a; --sub: #64748b;
         }
 
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; font-family: 'Outfit', sans-serif; }
-        
-        body { 
-            background: var(--bg); color: var(--text); 
-            min-height: 100vh; display: flex; align-items: center; justify-content: center; 
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow-x: hidden; padding: 20px;
-        }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow-x: hidden; padding: 20px; }
 
         .dashboard { 
-            width: 100%; max-width: 500px; 
-            padding: clamp(20px, 5vw, 40px); 
-            border-radius: clamp(30px, 8vw, 60px); 
-            background: var(--card); backdrop-filter: blur(30px); 
-            border: 1px solid rgba(255,255,255,0.08); 
-            box-shadow: 0 50px 120px rgba(0,0,0,0.6);
-            display: flex; flex-direction: column; 
+            width: 100%; max-width: 500px; padding: 30px; border-radius: 40px; 
+            background: var(--card); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.08); 
+            box-shadow: 0 50px 120px rgba(0,0,0,0.6); display: flex; flex-direction: column; 
         }
 
-        .hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4vh; }
+        .hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3vh; }
         .logo { font-size: var(--font-lg); letter-spacing: 2px; text-transform: uppercase; font-weight: 300; }
         .logo b { font-weight: 800; color: var(--primary); }
 
         .stats { display: flex; gap: 4%; margin-bottom: 3vh; }
-        .stat-card { 
-            flex: 1; padding: clamp(12px, 3vh, 25px); 
-            background: rgba(0,0,0,0.15); border-radius: clamp(15px, 4vw, 25px); 
-            border: 1px solid rgba(255,255,255,0.05); text-align: center;
-        }
+        .stat-card { flex: 1; padding: 20px; background: rgba(0,0,0,0.15); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); text-align: center;}
         .stat-val { font-size: var(--font-lg); font-weight: 800; color: var(--primary); }
         .stat-lbl { font-size: var(--font-sm); text-transform: uppercase; color: var(--sub); letter-spacing: 1.5px; opacity: 0.8; }
 
-        /* NEURAL CONTROLS */
-        .neural-dashboard {
-            background: rgba(0, 255, 170, 0.05);
-            border: 1px solid rgba(0, 255, 170, 0.2);
-            border-radius: 25px;
-            padding: 20px;
-            margin-bottom: 3vh;
-            text-align: center;
+        /* NEURAL INTERFACE COMPONENT */
+        .neural-hub {
+            margin-bottom: 3vh; padding: 20px; border-radius: 25px;
+            background: linear-gradient(145deg, rgba(0, 210, 255, 0.05), rgba(0, 0, 0, 0.2));
+            border: 1px solid rgba(0, 210, 255, 0.2); text-align: center;
         }
-        .neural-status { font-weight: 800; color: var(--neural); font-size: 1.1rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
-        .neural-toggle-btn {
-            background: var(--neural); color: #000; border: none;
-            padding: 10px 20px; border-radius: 12px; font-weight: 800;
-            cursor: pointer; transition: 0.3s; width: 100%;
+        #ai-state-lbl { font-weight: 800; color: var(--primary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+        .neural-btn {
+            width: 100%; padding: 12px; border-radius: 12px; border: none;
+            background: var(--primary); color: #000; font-weight: 800; 
+            cursor: pointer; transition: 0.3s; text-transform: uppercase; font-size: 0.75rem;
         }
-        .neural-toggle-btn:active { transform: scale(0.95); opacity: 0.8; }
+        .neural-btn:active { transform: scale(0.95); opacity: 0.8; }
 
-        .dpad { 
-            display: grid; grid-template-areas: ". up ." "left . right" ". down ."; 
-            gap: 15px; justify-content: center; margin-bottom: 4vh;
-        }
-        .d-btn { 
-            width: var(--btn-size); height: var(--btn-size); 
-            background: rgba(255,255,255,0.02); 
-            border: 2px solid rgba(255,255,255,0.05); 
-            border-radius: clamp(15px, 4vw, 30px); 
-            color: var(--text); font-size: 1.8rem; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; 
-            transition: 0.15s; box-shadow: 0 8px 0 rgba(0,0,0,0.2);
-        }
+        .dpad { display: grid; grid-template-areas: ". up ." "left . right" ". down ."; gap: 15px; justify-content: center; margin-bottom: 4vh; }
+        .d-btn { width: var(--btn-size); height: var(--btn-size); background: rgba(255,255,255,0.02); border: 2px solid rgba(255,255,255,0.05); border-radius: 25px; color: var(--text); font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.15s; }
         .d-btn:active { background: var(--primary); color: #000; box-shadow: 0 0 40px var(--primary); transform: translateY(4px); }
-        .disabled { opacity: 0.2; filter: grayscale(1); pointer-events: none; }
+        .disabled { opacity: 0.1; pointer-events: none; }
 
-        .btn-group { display: flex; gap: 12px; margin-top: auto; }
-        .m-btn { 
-            flex: 1; padding: clamp(15px, 2.5vh, 25px); 
-            border-radius: clamp(15px, 4vw, 25px); 
-            border: none; background: rgba(0,0,0,0.3); color: var(--sub); 
-            font-weight: 800; font-size: var(--font-sm); cursor: pointer;
-        }
-        .m-btn.active { background: var(--primary); color: #000; }
+        .btn-group { display: flex; gap: 12px; }
+        .m-btn { flex: 1; padding: 20px; border-radius: 20px; border: none; background: rgba(0,0,0,0.3); color: var(--sub); font-weight: 800; font-size: var(--font-sm); cursor: pointer; transition: 0.3s; }
+        .m-btn.active { background: var(--primary); color: #000; box-shadow: 0 10px 40px rgba(0, 210, 255, 0.2); }
 
-        .halt { 
-            width: 100%; padding: clamp(18px, 3vh, 30px); 
-            border-radius: clamp(20px, 5vw, 30px); 
-            border: none; background: var(--accent); color: #fff; 
-            font-weight: 800; font-size: var(--font-lg); 
-            margin-top: 20px; cursor: pointer; box-shadow: 0 15px 40px rgba(255,0,85,0.3);
-        }
-        
-        #conn-msg { 
-            position: fixed; top: 0; left:0; width: 100%; padding: 15px; 
-            background: var(--primary); color: #000; text-align: center; 
-            font-weight: 800; cursor: pointer; z-index: 1000; transition: 0.6s;
-        }
+        .halt { width: 100%; padding: 25px; border-radius: 25px; border: none; background: var(--accent); color: #fff; font-weight: 800; font-size: var(--font-lg); margin-top: 20px; cursor: pointer; box-shadow: 0 15px 40px rgba(255,0,85,0.3); }
+
+        #conn-msg { position: fixed; top: 0; left:0; width: 100%; padding: 15px; background: var(--primary); color: #000; text-align: center; font-weight: 800; cursor: pointer; z-index: 1000; transition: 0.6s; }
         .hidden { transform: translateY(-100%); }
     </style>
 </head>
 <body data-theme="dark">
-    <div id="conn-msg">TAP TO ACTIVATE NEURAL LINK</div>
+    <div id="conn-msg">SYSTEM LINK PENDING - TAP TO ACTIVATE</div>
 
     <div class="dashboard">
         <div class="hdr">
-            <h2 class="logo">ROBO<b>ROVER</b> AI</h2>
-            <div onclick="document.body.dataset.theme = (document.body.dataset.theme === 'light' ? 'dark' : 'light')" style="cursor:pointer;">🌓</div>
+            <h2 class="logo">ROBO<b>ROVER</b></h2>
+            <div onclick="document.body.dataset.theme = (document.body.dataset.theme === 'light' ? 'dark' : 'light')" style="cursor:pointer; font-size: 1.2rem;">🌓</div>
         </div>
 
         <div class="stats">
-            <div class="stat-card">
-                <div class="stat-val" id="m-txt">--</div>
-                <div class="stat-lbl">Control</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-val" id="d-txt">--</div>
-                <div class="stat-lbl">Radar</div>
-            </div>
+            <div class="stat-card"><div class="stat-val" id="m-txt">--</div><div class="stat-lbl">Control</div></div>
+            <div class="stat-card"><div class="stat-val" id="d-txt">--</div><div class="stat-lbl">Radar</div></div>
         </div>
 
-        <div class="neural-dashboard">
-            <div class="neural-status" id="ai-state">LRN: MAPPING TRACK</div>
-            <button class="neural-toggle-btn" id="neural-btn" onclick="send('L')">SWITCH TO PREDICT</button>
+        <div class="neural-hub">
+            <div id="ai-state-lbl">NEURAL MODE: LEARNING</div>
+            <button class="neural-btn" onclick="send('L')">Switch to Prediction</button>
         </div>
 
-        <div class="log-container" style="margin-bottom: 3vh; padding: 12px; border-radius: 15px; background: rgba(0,210,255,0.05); text-align: center;">
-            <div id="log-box" style="font-size: 0.8rem; font-weight: 600; color: var(--primary); font-family: monospace;">AWAITING NEURAL SYNC...</div>
-        </div>
+        <div id="log-box" style="margin-bottom: 3vh; padding: 12px; border-radius: 15px; background: rgba(0,210,255,0.05); text-align: center; color: var(--primary); font-family: monospace; font-size: 0.8rem; border: 1px solid rgba(0,210,255,0.15);">AWAITING LINK...</div>
 
         <div class="dpad" id="main-pad">
             <button class="d-btn" style="grid-area: up" id="up">▲</button>
@@ -155,10 +104,7 @@
     <script>
         const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
         const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
-        let charDirect, currentM = 'M';
-        let bleDevice = null;
-        let isWriting = false;
-        let msgQueue = [];
+        let charDirect, currentM = 'M', bleDevice = null, isWriting = false, msgQueue = [];
         let wakeLock = null;
 
         async function requestWakeLock() {
@@ -181,18 +127,16 @@
                 const server = await bleDevice.gatt.connect();
                 const service = await server.getPrimaryService(SERVICE_UUID);
                 charDirect = await service.getCharacteristic(CHAR_UUID);
-                
                 document.getElementById('conn-msg').classList.add('hidden');
                 charDirect.startNotifications();
                 await requestWakeLock(); // Prevent phone screen from sleeping
 
                 charDirect.addEventListener('characteristicvaluechanged', (e) => {
                     const str = new TextDecoder().decode(e.target.value);
-                    
                     if (str.startsWith("MSG:")) {
                         document.getElementById('log-box').innerText = "> " + str.substring(4);
                     } else {
-                        // NEW PARSER: Mode, Distance, AI_Mode (A,25,LRN)
+                        // DETAILED ANALYSIS PARSER: [Mode, Distance, NeuralState]
                         const [m, d, ai] = str.split(',');
                         if (d !== undefined) {
                             currentM = m;
@@ -202,9 +146,10 @@
                             document.getElementById('mode-m').classList.toggle('active', m === 'M');
                             document.getElementById('main-pad').classList.toggle('disabled', m === 'A');
                             
+                            // Neural UI Update
                             if(ai) {
-                                document.getElementById('ai-state').innerText = (ai === "LRN" ? "LRN: MAPPING TRACK" : "PRD: NEURAL PREDICT");
-                                document.querySelector('.neural-toggle-btn').innerText = (ai === "LRN" ? "SWITCH TO PREDICT" : "SWITCH TO LEARN");
+                                document.getElementById('ai-state-lbl').innerText = (ai === "LRN" ? "NEURAL MODE: LEARNING" : "NEURAL MODE: PREDICTION");
+                                document.querySelector('.neural-btn').innerText = (ai === "LRN" ? "Switch to Prediction" : "Switch to Learning");
                             }
                         }
                     }
@@ -222,9 +167,9 @@
         };
         bindControl('up', 'F'); bindControl('down', 'B'); bindControl('left', 'L'); bindControl('right', 'R');
 
-        function haltSystem() {
-            send('S');
-            currentM = 'M';
+        function haltSystem() { 
+            send('S'); 
+            currentM = 'M'; 
             document.getElementById('m-txt').innerText = "MANUAL";
             document.getElementById('mode-a').classList.remove('active');
             document.getElementById('mode-m').classList.add('active');
@@ -244,8 +189,7 @@
             isWriting = true;
             while(msgQueue.length > 0) {
                 let toSend = msgQueue.shift();
-                try { await charDirect.writeValue(new TextEncoder().encode(toSend)); } 
-                catch(exc) { console.error("BLE Error: ", exc); }
+                try { await charDirect.writeValue(new TextEncoder().encode(toSend)); } catch(exc) { }
             }
             isWriting = false;
         }
