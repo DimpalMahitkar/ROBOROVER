@@ -50,12 +50,23 @@
             <button class="btn btn-m" id="a-btn" onclick="send('A')">AI Auto</button>
         </div>
         <button class="btn btn-l" onclick="send('LN')">Reset & Start Learning</button>
-        <button class="btn btn-halt" onclick="send('S')">HALT SYSTEM</button>
+        <button class="btn btn-halt" id="halt-btn">HALT SYSTEM</button>
     </div>
     <script>
         const UUID_SVC = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
         const UUID_CHR = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
         let charDirect, currentMode = 'M';
+        let isWriting = false, msgQueue = [];
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try { wakeLock = await navigator.wakeLock.request('screen'); } 
+            catch (err) { console.error(err); }
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+        });
 
         async function connect() {
             try {
@@ -64,6 +75,9 @@
                 const service = await server.getPrimaryService(UUID_SVC);
                 charDirect = await service.getCharacteristic(UUID_CHR);
                 document.getElementById('conn-btn').style.display = 'none';
+                
+                await requestWakeLock();
+
                 charDirect.startNotifications();
                 charDirect.addEventListener('characteristicvaluechanged', e => {
                     const val = new TextDecoder().decode(e.target.value);
@@ -83,15 +97,33 @@
 
         async function send(msg) {
             if(!charDirect) return;
-            await charDirect.writeValue(new TextEncoder().encode(msg));
+            msgQueue.push(msg); 
+            if(isWriting) return;
+            isWriting = true;
+            while(msgQueue.length > 0) {
+                let toSend = msgQueue.shift();
+                try { await charDirect.writeValue(new TextEncoder().encode(toSend)); } catch(exc) {}
+            }
+            isWriting = false;
         }
 
         const bind = (id, cmd) => {
             const el = document.getElementById(id);
-            el.onpointerdown = () => { if(currentMode === 'M') send(cmd); };
-            el.onpointerup = () => { if(currentMode === 'M') send('S'); };
+            el.onpointerdown = (e) => { e.preventDefault(); if(currentMode === 'M') send(cmd); };
+            el.onpointerup = (e) => { e.preventDefault(); if(currentMode === 'M') send('S'); };
+            el.onpointerleave = (e) => { e.preventDefault(); if(currentMode === 'M') send('S'); };
         };
         bind('f', 'F'); bind('b', 'B'); bind('l', 'L'); bind('r', 'R');
+
+        document.getElementById('halt-btn').onpointerdown = (e) => {
+            e.preventDefault();
+            send('S');
+            currentMode = 'M';
+            document.getElementById('st-mode').innerText = "MANUAL";
+            document.getElementById('dpad').classList.remove('disabled');
+            document.getElementById('a-btn').classList.remove('active');
+            document.getElementById('m-btn').classList.add('active');
+        };
     </script>
 </body>
 </html>
