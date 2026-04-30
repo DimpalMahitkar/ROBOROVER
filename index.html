@@ -1,54 +1,102 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ROBOROVER AI</title>
+    <title>ROBOROVER AI | Command Center</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;800&display=swap" rel="stylesheet">
     <style>
-        :root { --p: #00d2ff; --a: #ff0055; --bg: #0b111a; --card: rgba(255,255,255,0.05); }
-        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Outfit'; }
-        body { background: var(--bg); color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .dash { width: 90%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 40px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
-        .stats { display: flex; gap: 10px; margin: 20px 0; }
-        .stat { flex: 1; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-        .val { font-size: 1.1rem; font-weight: 800; color: var(--p); }
-        .lbl { font-size: 0.6rem; opacity: 0.5; text-transform: uppercase; }
-        .pad { display: grid; grid-template-areas: ". u ." "l . r" ". d ."; gap: 12px; justify-content: center; margin-bottom: 25px; }
-        .btn { width: 70px; height: 70px; background: var(--card); border: none; border-radius: 20px; color: #fff; font-size: 1.4rem; cursor: pointer; }
-        .btn:active { background: var(--p); color: #000; transform: scale(0.9); }
-        .m-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .m-btn { flex: 1; padding: 15px; border-radius: 15px; border: none; font-weight: 800; cursor: pointer; background: rgba(255,255,255,0.1); color: #fff; text-transform: uppercase; }
-        .m-btn.active { background: var(--p); color: #000; }
-        .lrn { background: #00ffaa !important; color: #000 !important; width: 100%; margin-top: 5px; font-size: 0.8rem;}
-        .prd { background: #ffaa00 !important; color: #000 !important; width: 100%; margin-top: 5px; font-size: 0.8rem;}
-        .stop { background: var(--a) !important; color: #fff !important; width: 100%; margin-top: 10px; font-size: 1.1rem; }
-        #conn { position: fixed; top: 0; width: 100%; padding: 15px; background: var(--p); color: #000; text-align: center; font-weight: 800; cursor: pointer; z-index: 100; }
-        .disabled { opacity: 0.1; pointer-events: none; }
+        :root { 
+            --p: #00d2ff; 
+            --a: #ff0055; 
+            --bg: #0b111a; 
+            --card: rgba(255, 255, 255, 0.05); 
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg); color: #fff; 
+            display: flex; align-items: center; justify-content: center; 
+            min-height: 100vh; overflow: hidden; padding: 20px;
+        }
+
+        .dashboard { 
+            width: 100%; max-width: 420px; 
+            background: var(--card); backdrop-filter: blur(20px); 
+            border-radius: 40px; padding: 30px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            box-shadow: 0 40px 100px rgba(0,0,0,0.5); 
+        }
+
+        .hdr { text-align: center; margin-bottom: 25px; letter-spacing: 2px; }
+        .hdr b { color: var(--p); }
+
+        .stats { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat { 
+            flex: 1; background: rgba(0,0,0,0.3); padding: 12px; 
+            border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); 
+        }
+        .val { font-size: 1.1rem; font-weight: 800; color: var(--p); text-transform: uppercase; }
+        .lbl { font-size: 0.6rem; opacity: 0.5; text-transform: uppercase; margin-top: 4px; }
+
+        .dpad { 
+            display: grid; grid-template-areas: ". u ." "l . r" ". d ."; 
+            gap: 12px; justify-content: center; margin-bottom: 25px; transition: opacity 0.3s;
+        }
+        .d-btn { 
+            width: 70px; height: 70px; background: rgba(255,255,255,0.05); 
+            border: none; border-radius: 20px; color: #fff; 
+            font-size: 1.4rem; cursor: pointer; transition: 0.2s;
+        }
+        .d-btn:active { background: var(--p); color: #000; transform: scale(0.9); }
+        .disabled { opacity: 0.1; pointer-events: none; filter: grayscale(1); }
+
+        .btn-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .act-btn { 
+            flex: 1; padding: 16px; border-radius: 15px; 
+            border: none; font-weight: 800; cursor: pointer; 
+            transition: 0.3s; text-transform: uppercase; font-size: 0.75rem;
+        }
+        .blue { background: var(--p); color: #000; }
+        .green { background: #00ffaa; color: #000; width: 100%; margin-top: 5px; }
+        .red { background: var(--a); color: #fff; width: 100%; margin-top: 10px; font-size: 1rem; }
+
+        #conn { 
+            position: fixed; top: 0; left: 0; width: 100%; 
+            padding: 15px; background: var(--p); color: #000; 
+            text-align: center; font-weight: 800; cursor: pointer; z-index: 100; 
+        }
     </style>
 </head>
 <body>
-    <div id="conn" onclick="connect()">CONNECT SYSTEM</div>
-    <div class="dash">
-        <h2 style="text-align:center; margin-bottom: 20px;">ROBO<span style="color:var(--p)">ROVER</span></h2>
+    <div id="conn" onclick="connect()">INITIALIZE SYSTEM LINK</div>
+
+    <div class="dashboard">
+        <div class="hdr"><h2>ROBO<b>ROVER</b> AI</h2></div>
+
         <div class="stats">
             <div class="stat"><div class="val" id="vm">OFF</div><div class="lbl">Mode</div></div>
-            <div class="stat"><div class="val" id="va">WAIT</div><div class="lbl">Neural</div></div>
+            <div class="stat"><div class="val" id="va">WAIT</div><div class="lbl">Brain</div></div>
             <div class="stat"><div class="val" id="vd">--</div><div class="lbl">Radar</div></div>
         </div>
-        <div class="pad" id="ctrl">
-            <button class="btn" id="f" style="grid-area: u">▲</button>
-            <button class="btn" id="l" style="grid-area: l">◀</button>
-            <button class="btn" id="r" style="grid-area: r">▶</button>
-            <button class="btn" id="b" style="grid-area: d">▼</button>
+
+        <div class="dpad" id="pad">
+            <button class="d-btn" style="grid-area: u" id="f">▲</button>
+            <button class="d-btn" style="grid-area: l" id="l">◀</button>
+            <button class="d-btn" style="grid-area: r" id="r">▶</button>
+            <button class="d-btn" style="grid-area: d" id="b">▼</button>
         </div>
-        <div class="m-row">
-            <button class="m-btn active" id="bm" onclick="send('M')">Manual</button>
-            <button class="m-btn" id="ba" onclick="send('A')">Auto</button>
+
+        <div class="btn-row">
+            <button class="act-btn blue" id="btn-man" onclick="send('SET_MAN')">Manual</button>
+            <button class="act-btn blue" id="btn-auto" onclick="send('SET_PRED')">Auto Predict</button>
         </div>
-        <button class="m-btn lrn" onclick="send('LN')">START LEARNING LAP</button>
-        <button class="m-btn prd" onclick="send('PR')">FORCE PREDICT MODE</button>
-        <button class="m-btn stop" id="halt-btn">HALT SYSTEM</button>
+
+        <button class="act-btn green" onclick="send('SET_LEARN')">Start Learning Lap</button>
+        <button class="act-btn red" id="halt-btn">HALT SYSTEM</button>
     </div>
+
     <script>
         const SVC="4fafc201-1fb5-459e-8fcc-c5c9c331914b", CHR="beb5483e-36e1-4688-b7f5-ea07361b26a8";
         let char, curM='M';
@@ -66,31 +114,43 @@
 
         async function connect() {
             try {
-                const dev = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ROBOROVER_BLE' }], optionalServices: [SVC] });
+                const dev = await navigator.bluetooth.requestDevice({ 
+                    filters: [{ name: 'ROBOROVER_BLE' }], 
+                    optionalServices: [SVC] 
+                });
                 const srv = await dev.gatt.connect();
                 const sc = await srv.getPrimaryService(SVC);
                 char = await sc.getCharacteristic(CHR);
+                
                 document.getElementById('conn').style.display='none';
                 
                 await requestWakeLock();
-
+                
                 char.startNotifications();
                 char.addEventListener('characteristicvaluechanged', e => {
                     const val = new TextDecoder().decode(e.target.value);
-                    if(val.startsWith("MSG:")) { console.log(val); return; }
                     const [m, d, a] = val.split(',');
                     curM = m;
+                    
                     document.getElementById('vm').innerText = m=='M'?'MANUAL':'AUTO';
                     document.getElementById('va').innerText = a=='LRN'?'LEARN':(a=='REC'?'RECORD':'PREDICT');
                     document.getElementById('vd').innerText = d+'cm';
-                    document.getElementById('ba').classList.toggle('active', m=='A');
-                    document.getElementById('bm').classList.toggle('active', m=='M');
-                    document.getElementById('ctrl').classList.toggle('disabled', m=='A');
+                    
+                    // Disable D-Pad when in Auto
+                    document.getElementById('pad').classList.toggle('disabled', m=='A');
+                    
+                    if (m === 'A') {
+                        document.getElementById('btn-auto').style.boxShadow = '0 0 20px rgba(0,210,255,0.5)';
+                        document.getElementById('btn-man').style.boxShadow = 'none';
+                    } else {
+                        document.getElementById('btn-man').style.boxShadow = '0 0 20px rgba(0,210,255,0.5)';
+                        document.getElementById('btn-auto').style.boxShadow = 'none';
+                    }
                 });
-            } catch (e) { alert(e); }
+            } catch (e) { alert("Link Error: " + e); }
         }
 
-        async function send(s) {
+        async function send(s) { 
             if(!char) return;
             msgQueue.push(s); 
             if(isWriting) return;
@@ -105,19 +165,20 @@
         const bind = (id, s) => {
             const el = document.getElementById(id);
             el.onpointerdown = (e) => { e.preventDefault(); if(curM=='M') send(s); };
-            el.onpointerup = (e) => { e.preventDefault(); if(curM=='M') send('S'); };
-            el.onpointerleave = (e) => { e.preventDefault(); if(curM=='M') send('S'); };
+            el.onpointerup = (e) => { e.preventDefault(); if(curM=='M') send('STOP'); };
+            el.onpointerleave = (e) => { e.preventDefault(); if(curM=='M') send('STOP'); };
         };
+
         bind('f','F'); bind('b','B'); bind('l','L'); bind('r','R');
 
         document.getElementById('halt-btn').onpointerdown = (e) => {
             e.preventDefault();
-            send('S');
+            send('STOP');
             curM = 'M';
             document.getElementById('vm').innerText = "MANUAL";
-            document.getElementById('ctrl').classList.remove('disabled');
-            document.getElementById('ba').classList.remove('active');
-            document.getElementById('bm').classList.add('active');
+            document.getElementById('pad').classList.remove('disabled');
+            document.getElementById('btn-man').style.boxShadow = '0 0 20px rgba(0,210,255,0.5)';
+            document.getElementById('btn-auto').style.boxShadow = 'none';
         };
     </script>
 </body>
