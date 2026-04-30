@@ -3,183 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ROBOROVER AI | Command Center</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;800&display=swap" rel="stylesheet">
+    <title>ROBOROVER | Universal Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --p: #00d2ff; 
-            --a: #ff0055; 
-            --bg: #0b111a; 
-            --card: rgba(255, 255, 255, 0.05); 
+        :root {
+            --primary: #00d2ff; --accent: #ff0055; --bg: #0b111a;
+            --card: rgba(255, 255, 255, 0.04); --text: #ffffff; --sub: #8892b0;
+            --btn-size: clamp(65px, 15vmin, 100px);
+            --font-lg: clamp(1.2rem, 3.5vmin, 1.8rem);
+            --font-sm: clamp(0.7rem, 2vmin, 0.9rem);
+        }
+        [data-theme="light"] {
+            --primary: #0060df; --bg: #f8fafc; --card: rgba(255, 255, 255, 0.85); --text: #0f172a; --sub: #64748b;
         }
 
-        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; font-family: 'Outfit', sans-serif; }
         
         body { 
-            background: var(--bg); color: #fff; 
-            display: flex; align-items: center; justify-content: center; 
-            min-height: 100vh; overflow: hidden; padding: 20px;
+            background: var(--bg); color: var(--text); 
+            min-height: 100vh; display: flex; align-items: center; justify-content: center; 
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden; padding: 20px;
         }
 
         .dashboard { 
-            width: 100%; max-width: 420px; 
-            background: var(--card); backdrop-filter: blur(20px); 
-            border-radius: 40px; padding: 30px; 
-            border: 1px solid rgba(255,255,255,0.1); 
-            box-shadow: 0 40px 100px rgba(0,0,0,0.5); 
+            width: 100%; max-width: 500px; 
+            padding: clamp(20px, 5vw, 40px); 
+            border-radius: clamp(30px, 8vw, 60px); 
+            background: var(--card); backdrop-filter: blur(30px); 
+            border: 1px solid rgba(255,255,255,0.08); 
+            box-shadow: 0 50px 120px rgba(0,0,0,0.6);
+            display: flex; flex-direction: column; 
         }
 
-        .hdr { text-align: center; margin-bottom: 25px; letter-spacing: 2px; }
-        .hdr b { color: var(--p); }
+        .hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5vh; }
+        .logo { font-size: var(--font-lg); letter-spacing: 2px; text-transform: uppercase; font-weight: 300; }
+        .logo b { font-weight: 800; color: var(--primary); }
 
-        .stats { display: flex; gap: 10px; margin-bottom: 20px; }
-        .stat { 
-            flex: 1; background: rgba(0,0,0,0.3); padding: 12px; 
-            border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); 
+        .stats { display: flex; gap: 4%; margin-bottom: 4vh; }
+        .stat-card { 
+            flex: 1; padding: clamp(12px, 3vh, 25px); 
+            background: rgba(0,0,0,0.15); border-radius: clamp(15px, 4vw, 25px); 
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .val { font-size: 1.1rem; font-weight: 800; color: var(--p); text-transform: uppercase; }
-        .lbl { font-size: 0.6rem; opacity: 0.5; text-transform: uppercase; margin-top: 4px; }
+        .stat-val { font-size: var(--font-lg); font-weight: 800; color: var(--primary); }
+        .stat-lbl { font-size: var(--font-sm); text-transform: uppercase; color: var(--sub); letter-spacing: 1.5px; opacity: 0.8; }
 
+        /* THE ADAPTIVE D-PAD */
         .dpad { 
-            display: grid; grid-template-areas: ". u ." "l . r" ". d ."; 
-            gap: 12px; justify-content: center; margin-bottom: 25px; transition: opacity 0.3s;
+            display: grid; grid-template-areas: ". up ." "left . right" ". down ."; 
+            gap: 15px; justify-content: center; margin-bottom: 5vh;
         }
         .d-btn { 
-            width: 70px; height: 70px; background: rgba(255,255,255,0.05); 
-            border: none; border-radius: 20px; color: #fff; 
-            font-size: 1.4rem; cursor: pointer; transition: 0.2s;
+            width: var(--btn-size); height: var(--btn-size); 
+            background: rgba(255,255,255,0.02); 
+            border: 2px solid rgba(255,255,255,0.05); 
+            border-radius: clamp(15px, 4vw, 30px); 
+            color: var(--text); font-size: 1.8rem; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; 
+            transition: 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            box-shadow: 0 8px 0 rgba(0,0,0,0.2);
         }
-        .d-btn:active { background: var(--p); color: #000; transform: scale(0.9); }
-        .disabled { opacity: 0.1; pointer-events: none; filter: grayscale(1); }
+        .d-btn:active { background: var(--primary); color: #000; box-shadow: 0 0 40px var(--primary); transform: translateY(4px); border-color: transparent; }
+        .d-btn.disabled { opacity: 0.1; filter: grayscale(1); pointer-events: none; }
 
-        .btn-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .act-btn { 
-            flex: 1; padding: 16px; border-radius: 15px; 
-            border: none; font-weight: 800; cursor: pointer; 
-            transition: 0.3s; text-transform: uppercase; font-size: 0.75rem;
+        .btn-group { display: flex; gap: 12px; margin-top: auto; }
+        .m-btn { 
+            flex: 1; padding: clamp(15px, 2.5vh, 25px); 
+            border-radius: clamp(15px, 4vw, 25px); 
+            border: none; background: rgba(0,0,0,0.3); color: var(--sub); 
+            font-weight: 800; font-size: var(--font-sm); 
+            cursor: pointer; transition: 0.3s; letter-spacing: 1.5px;
         }
-        .blue { background: var(--p); color: #000; }
-        .green { background: #00ffaa; color: #000; width: 100%; margin-top: 5px; }
-        .red { background: var(--a); color: #fff; width: 100%; margin-top: 10px; font-size: 1rem; }
+        .m-btn.active { background: var(--primary); color: #000; box-shadow: 0 10px 40px rgba(0, 210, 255, 0.35); }
 
-        #conn { 
-            position: fixed; top: 0; left: 0; width: 100%; 
-            padding: 15px; background: var(--p); color: #000; 
-            text-align: center; font-weight: 800; cursor: pointer; z-index: 100; 
+        .halt { 
+            width: 100%; padding: clamp(18px, 3vh, 30px); 
+            border-radius: clamp(20px, 5vw, 30px); 
+            border: none; background: var(--accent); color: #fff; 
+            font-weight: 800; font-size: var(--font-lg); 
+            margin-top: 25px; cursor: pointer; 
+            box-shadow: 0 20px 50px rgba(255,0,85,0.4); letter-spacing: 2px;
         }
+        .halt:active { transform: scale(0.97) translateY(2px); opacity: 0.9; }
+        
+        #conn-msg { 
+            position: fixed; top: 0; left:0; width: 100%; padding: 15px; 
+            background: var(--primary); color: #000; text-align: center; 
+            font-weight: 800; cursor: pointer; z-index: 1000; 
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+        }
+        .hidden { transform: translateY(-100%); }
+
+        /* Tablet/Desktop Tweaks */
+        @media (min-width: 768px) { .dashboard { max-width: 550px; } }
     </style>
 </head>
-<body>
-    <div id="conn" onclick="connect()">INITIALIZE SYSTEM LINK</div>
+<body data-theme="dark">
+    <div id="conn-msg">SYSTEM LINK PENDING - TAP TO ACTIVATE</div>
 
     <div class="dashboard">
-        <div class="hdr"><h2>ROBO<b>ROVER</b> AI</h2></div>
+        <div class="hdr">
+            <h2 class="logo">ROBO<b>ROVER</b></h2>
+            <div onclick="document.body.dataset.theme = (document.body.dataset.theme === 'light' ? 'dark' : 'light')" style="cursor:pointer; font-size: 1.5rem;">🌓</div>
+        </div>
 
         <div class="stats">
-            <div class="stat"><div class="val" id="vm">OFF</div><div class="lbl">Mode</div></div>
-            <div class="stat"><div class="val" id="va">WAIT</div><div class="lbl">Brain</div></div>
-            <div class="stat"><div class="val" id="vd">--</div><div class="lbl">Radar</div></div>
+            <div class="stat-card">
+                <div class="stat-val" id="m-txt">--</div>
+                <div class="stat-lbl">Control</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="d-txt">--</div>
+                <div class="stat-lbl">Radar</div>
+            </div>
         </div>
 
-        <div class="dpad" id="pad">
-            <button class="d-btn" style="grid-area: u" id="f">▲</button>
-            <button class="d-btn" style="grid-area: l" id="l">◀</button>
-            <button class="d-btn" style="grid-area: r" id="r">▶</button>
-            <button class="d-btn" style="grid-area: d" id="b">▼</button>
+        <div class="log-container" style="margin-bottom: 3vh; padding: 15px; border-radius: clamp(15px, 4vw, 25px); background: rgba(0,210,255,0.05); border: 1px solid rgba(0,210,255,0.15); text-align: center;">
+            <div style="font-size: var(--font-sm); text-transform: uppercase; color: var(--sub); letter-spacing: 1.5px; opacity: 0.8; margin-bottom: 5px;">System Console</div>
+            <div id="log-box" style="font-size: var(--font-sm); font-weight: 600; color: var(--primary); font-family: monospace; letter-spacing: 1px;">AWAITING LINK...</div>
         </div>
 
-        <div class="btn-row">
-            <button class="act-btn blue" id="btn-man" onclick="send('SET_MAN')">Manual</button>
-            <button class="act-btn blue" id="btn-auto" onclick="send('SET_PRED')">Auto Predict</button>
+        <div class="dpad" id="main-pad">
+            <button class="d-btn" style="grid-area: up" id="up">▲</button>
+            <button class="d-btn" style="grid-area: left" id="left">◀</button>
+            <button class="d-btn" style="grid-area: right" id="right">▶</button>
+            <button class="d-btn" style="grid-area: down" id="down">▼</button>
         </div>
 
-        <button class="act-btn green" onclick="send('SET_LEARN')">Start Learning Lap</button>
-        <button class="act-btn red" id="halt-btn">HALT SYSTEM</button>
+        <div class="btn-group">
+            <button class="m-btn active" id="mode-m" onclick="send('M')">MANUAL</button>
+            <button class="m-btn" id="mode-a" onclick="send('A')">AI AUTO</button>
+        </div>
+
+        <button class="halt" id="halt-btn">HALT SYSTEM</button>
     </div>
 
     <script>
-        const SVC="4fafc201-1fb5-459e-8fcc-c5c9c331914b", CHR="beb5483e-36e1-4688-b7f5-ea07361b26a8";
-        let char, curM='M';
-        let isWriting = false, msgQueue = [];
-        let wakeLock = null;
-
-        async function requestWakeLock() {
-            try { wakeLock = await navigator.wakeLock.request('screen'); } 
-            catch (err) { console.error(err); }
-        }
-
-        document.addEventListener('visibilitychange', () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
-        });
+        const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+        const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+        let charDirect, currentM = 'M';
+        let bleDevice = null;
 
         async function connect() {
             try {
-                const dev = await navigator.bluetooth.requestDevice({ 
-                    filters: [{ name: 'ROBOROVER_BLE' }], 
-                    optionalServices: [SVC] 
-                });
-                const srv = await dev.gatt.connect();
-                const sc = await srv.getPrimaryService(SVC);
-                char = await sc.getCharacteristic(CHR);
+                if (!bleDevice) {
+                    bleDevice = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ROBOROVER_BLE' }], optionalServices: [SERVICE_UUID] });
+                }
+                const server = await bleDevice.gatt.connect();
+                const service = await server.getPrimaryService(SERVICE_UUID);
+                charDirect = await service.getCharacteristic(CHAR_UUID);
                 
-                document.getElementById('conn').style.display='none';
-                
+                document.getElementById('conn-msg').classList.add('hidden');
+                charDirect.startNotifications();
                 await requestWakeLock();
-                
-                char.startNotifications();
-                char.addEventListener('characteristicvaluechanged', e => {
-                    const val = new TextDecoder().decode(e.target.value);
-                    const [m, d, a] = val.split(',');
-                    curM = m;
-                    
-                    document.getElementById('vm').innerText = m=='M'?'MANUAL':'AUTO';
-                    document.getElementById('va').innerText = a=='LRN'?'LEARN':(a=='REC'?'RECORD':'PREDICT');
-                    document.getElementById('vd').innerText = d+'cm';
-                    
-                    // Disable D-Pad when in Auto
-                    document.getElementById('pad').classList.toggle('disabled', m=='A');
-                    
-                    if (m === 'A') {
-                        document.getElementById('btn-auto').style.boxShadow = '0 0 20px rgba(0,210,255,0.5)';
-                        document.getElementById('btn-man').style.boxShadow = 'none';
+                charDirect.addEventListener('characteristicvaluechanged', (e) => {
+                    const str = new TextDecoder().decode(e.target.value);
+                    if (str.startsWith("MSG:")) {
+                        const msg = str.substring(4);
+                        document.getElementById('log-box').innerText = "> " + msg;
                     } else {
-                        document.getElementById('btn-man').style.boxShadow = '0 0 20px rgba(0,210,255,0.5)';
-                        document.getElementById('btn-auto').style.boxShadow = 'none';
+                        const [m, d] = str.split(',');
+                        if (d !== undefined) {
+                            currentM = m;
+                            document.getElementById('m-txt').innerText = m === 'M' ? "MANUAL" : "AUTO";
+                            document.getElementById('d-txt').innerText = d + "cm";
+                            document.getElementById('mode-a').classList.toggle('active', m === 'A');
+                            document.getElementById('mode-m').classList.toggle('active', m === 'M');
+                            document.getElementById('main-pad').classList.toggle('disabled', m === 'A');
+                        }
                     }
                 });
-            } catch (e) { alert("Link Error: " + e); }
+            } catch (err) { console.error(err); }
+        }
+        document.getElementById('conn-msg').onclick = connect;
+
+        const bindControl = (id, c) => {
+            const btn = document.getElementById(id);
+            const act = (e) => { e.preventDefault(); if(currentM==='M') send(c); };
+            const stop = (e) => { e.preventDefault(); if(currentM==='M') send('S'); };
+            ['mousedown', 'touchstart'].forEach(ev => btn.addEventListener(ev, act));
+            ['mouseup', 'mouseleave', 'touchend'].forEach(ev => btn.addEventListener(ev, stop));
+        };
+        bindControl('up', 'F'); bindControl('down', 'B'); bindControl('left', 'L'); bindControl('right', 'R');
+
+        let isWriting = false;
+        let msgQueue = [];
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+            } catch (err) {
+                console.error('Wake Lock error:', err);
+            }
         }
 
-        async function send(s) { 
-            if(!char) return;
-            msgQueue.push(s); 
+        document.addEventListener('visibilitychange', () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
+
+        function haltSystem() {
+            send('S');
+            currentM = 'M';
+            document.getElementById('m-txt').innerText = "MANUAL";
+            document.getElementById('mode-a').classList.remove('active');
+            document.getElementById('mode-m').classList.add('active');
+            document.getElementById('main-pad').classList.remove('disabled');
+        }
+
+        document.getElementById('halt-btn').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            haltSystem();
+        });
+        
+        async function send(msg) {
+            if(!charDirect) return;
+            
+            // Queue the latest message. Overwrite array to prevent massive backlog latency
+            msgQueue = [msg]; 
+            
             if(isWriting) return;
             isWriting = true;
+            
             while(msgQueue.length > 0) {
                 let toSend = msgQueue.shift();
-                try { await char.writeValue(new TextEncoder().encode(toSend)); } catch(exc) {}
+                try { 
+                    // Safely dispatch to ESP32 buffer
+                    await charDirect.writeValue(new TextEncoder().encode(toSend)); 
+                } catch(exc) { 
+                    console.error("BLE Write Error: ", exc); 
+                }
             }
             isWriting = false;
         }
-
-        const bind = (id, s) => {
-            const el = document.getElementById(id);
-            el.onpointerdown = (e) => { e.preventDefault(); if(curM=='M') send(s); };
-            el.onpointerup = (e) => { e.preventDefault(); if(curM=='M') send('STOP'); };
-            el.onpointerleave = (e) => { e.preventDefault(); if(curM=='M') send('STOP'); };
-        };
-
-        bind('f','F'); bind('b','B'); bind('l','L'); bind('r','R');
-
-        document.getElementById('halt-btn').onpointerdown = (e) => {
-            e.preventDefault();
-            send('STOP');
-            curM = 'M';
-            document.getElementById('vm').innerText = "MANUAL";
-            document.getElementById('pad').classList.remove('disabled');
-            document.getElementById('btn-man').style.boxShadow = '0 0 20px rgba(0,210,255,0.5)';
-            document.getElementById('btn-auto').style.boxShadow = 'none';
-        };
     </script>
 </body>
 </html>
