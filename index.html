@@ -81,7 +81,7 @@
 
         <div class="neural-hub">
             <div id="ai-state-lbl">NEURAL MODE: LEARNING</div>
-            <button class="neural-btn" onclick="send('L')">Switch to Prediction</button>
+            <button class="neural-btn" onclick="send('L')">Toggle Neural Phase</button>
         </div>
 
         <div id="log-box" style="margin-bottom: 3vh; padding: 12px; border-radius: 15px; background: rgba(0,210,255,0.05); text-align: center; color: var(--primary); font-family: monospace; font-size: 0.8rem; border: 1px solid rgba(0,210,255,0.15);">AWAITING LINK...</div>
@@ -123,10 +123,15 @@
 
         async function connect() {
             try {
-                bleDevice = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ROBOROVER_AI' }], optionalServices: [SERVICE_UUID] });
+                // FIXED NAME FILTER: Matches your previous 'ROBOROVER_BLE'
+                bleDevice = await navigator.bluetooth.requestDevice({ 
+                    filters: [{ name: 'ROBOROVER_BLE' }], 
+                    optionalServices: [SERVICE_UUID] 
+                });
                 const server = await bleDevice.gatt.connect();
                 const service = await server.getPrimaryService(SERVICE_UUID);
                 charDirect = await service.getCharacteristic(CHAR_UUID);
+                
                 document.getElementById('conn-msg').classList.add('hidden');
                 charDirect.startNotifications();
                 await requestWakeLock(); // Prevent phone screen from sleeping
@@ -136,7 +141,6 @@
                     if (str.startsWith("MSG:")) {
                         document.getElementById('log-box').innerText = "> " + str.substring(4);
                     } else {
-                        // DETAILED ANALYSIS PARSER: [Mode, Distance, NeuralState]
                         const [m, d, ai] = str.split(',');
                         if (d !== undefined) {
                             currentM = m;
@@ -145,12 +149,7 @@
                             document.getElementById('mode-a').classList.toggle('active', m === 'A');
                             document.getElementById('mode-m').classList.toggle('active', m === 'M');
                             document.getElementById('main-pad').classList.toggle('disabled', m === 'A');
-                            
-                            // Neural UI Update
-                            if(ai) {
-                                document.getElementById('ai-state-lbl').innerText = (ai === "LRN" ? "NEURAL MODE: LEARNING" : "NEURAL MODE: PREDICTION");
-                                document.querySelector('.neural-btn').innerText = (ai === "LRN" ? "Switch to Prediction" : "Switch to Learning");
-                            }
+                            if(ai) document.getElementById('ai-state-lbl').innerText = (ai === "LRN" ? "NEURAL: LEARNING" : "NEURAL: PREDICTING");
                         }
                     }
                 });
@@ -189,7 +188,7 @@
             isWriting = true;
             while(msgQueue.length > 0) {
                 let toSend = msgQueue.shift();
-                try { await charDirect.writeValue(new TextEncoder().encode(toSend)); } catch(exc) { }
+                try { await charDirect.writeValue(new TextEncoder().encode(toSend)); } catch(exc) {}
             }
             isWriting = false;
         }
