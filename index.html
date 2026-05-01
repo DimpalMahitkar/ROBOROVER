@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -215,9 +214,11 @@
             document.getElementById('main-pad').classList.remove('disabled');
         }
 
-        document.getElementById('halt-btn').addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            haltSystem();
+        ['mousedown', 'touchstart'].forEach(ev => {
+            document.getElementById('halt-btn').addEventListener(ev, (e) => {
+                e.preventDefault();
+                haltSystem();
+            });
         });
         
         async function send(msg) {
