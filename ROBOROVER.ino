@@ -91,96 +91,66 @@ void physicalTurnRight() {
 void physicalDriveForward() { setMotor(baseSpeed + 20, baseSpeed + 20); }
 
 void obstacleBypass() {
-  setMotor(0, 0);
-  delay(300);
-
-  notify("MSG:SCAN LOOK LEFT");
-  long distLeft = getBestSideClearance(true);
-
-  notify("MSG:SCAN LOOK RIGHT");
-  long distRight = getBestSideClearance(false);
-
-  myServo.write(90);
-  delay(300);
-
-  const long clearMin = 20; // Side is clear above this distance (cm)
-  const long chooseGap = 5; // Ignore tiny differences due to sonar noise
-  bool leftClear = distLeft >= clearMin;
-  bool rightClear = distRight >= clearMin;
-  bool goLeft = false;
-
-  // Decision order:
-  // 1) If only one side is clear, choose it.
-  // 2) If both are clear/blocked, choose clearly larger free side.
-  // 3) If nearly equal, alternate turn direction (prevents right bias).
-  if (leftClear && !rightClear) {
-    goLeft = true;
-  } else if (!leftClear && rightClear) {
-    goLeft = false;
-  } else if (distLeft > distRight + chooseGap) {
-    goLeft = true;
-  } else if (distRight > distLeft + chooseGap) {
-    goLeft = false;
-  } else {
-    goLeft = !lastAvoidWasLeft;
-  }
-
-  if (goLeft) {
-    notify("MSG:MOVING LEFT");
-    lastAvoidWasLeft = true;
-
-    physicalTurnLeft();
-    delay(
-        400); // Sharply reduced to prevent over-rotation and BLE core stalling
-
-    physicalDriveForward();
-    delay(800);
-
-    // Take the opposite turn according to the turn it took earlier
-    physicalTurnRight();
-    delay(500); // Sharply reduced
-
-  } else {
-    notify("MSG:MOVING RIGHT");
-    lastAvoidWasLeft = false;
-
-    physicalTurnRight();
-    delay(400); // Sharply reduced
-
-    physicalDriveForward();
-    delay(800);
-
-    // Take the opposite turn according to the turn it took earlier
-    physicalTurnLeft();
-    delay(500); // Sharply reduced
-  }
-
-  // When it senses the black line again it should start to follow it
+  setMotor(0, 0);           // Full stop first
+  delay(500);
+  if (currentMode == MANUAL) return;
+  
+  setMotor(180, -180);      // Step 1: Sharp turn out from the line
+  delay(450); 
+  if (currentMode == MANUAL) return;
+  
+  setMotor(100, 100);       // Step 2: Move forward to clear the obstacle's side
+  delay(800);  
+  if (currentMode == MANUAL) return;
+  
+  setMotor(-180, 180);      // Step 3: Turn back to face parallel to the line
+  delay(500); 
+  if (currentMode == MANUAL) return;
+  
+  setMotor(100, 100);       // Step 4: Drive straight past the object
+  delay(1200); 
+  if (currentMode == MANUAL) return;
+  
+  setMotor(-180, 180);      // Step 5: Hook back toward the line at an angle
+  delay(400); 
+  if (currentMode == MANUAL) return;
+  
+  // Step 6: Drive forward until the Center Sensor (S_CENTER) detects the black line again
   notify("MSG:FINDING LINE");
-  unsigned long startSearch = millis();
-  while (millis() - startSearch < 6000) {
-    if (analogRead(S_LEFT) > blackLine || analogRead(S_CENTER) > blackLine ||
-        analogRead(S_RIGHT) > blackLine) {
-      setMotor(0, 0); // Active brake
-      delay(100);
-      lastError = 0;
-      notify("MSG:LINE REACQUIRED");
-      break;
-    }
-    physicalDriveForward();
+  while(analogRead(S_CENTER) < blackLine && currentMode != MANUAL) {
+    setMotor(80, 80); 
     delay(15);
   }
+  
+  setMotor(0, 0); // Active brake
+  delay(100);
+  lastError = 0;          // Reset PID error to prevent erratic snapping when back on line
+  notify("MSG:LINE REACQUIRED");
 }
 
 // ---------------- SENSING & LOGIC ----------------
 long getDist() {
+  static unsigned long lastPing = 0;
+  static long cachedDist = 999;
+  
+  // Enforce a 50ms physical cooldown to prevent HC-SR04 ghost echoes!
+  if (millis() - lastPing < 50) {
+    return cachedDist;
+  }
+  
   digitalWrite(TRIG, LOW);
   delayMicroseconds(2);
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG, LOW);
-  long d = pulseIn(ECHO, HIGH, 20000); // 20ms timeout
-  return (d == 0) ? 999 : d * 0.034 / 2;
+  long d = pulseIn(ECHO, HIGH, 15000); // 15ms timeout
+  cachedDist = (d == 0) ? 999 : d * 0.034 / 2;
+  
+  // Ignore mathematically impossible noise spikes (e.g., 0cm or 1cm)
+  if (cachedDist < 2) cachedDist = 999; 
+  
+  lastPing = millis();
+  return cachedDist;
 }
 
 long getStableDistAt(int angle) {
@@ -262,9 +232,9 @@ void runManual() {
   else if (lastCmd == 'B')
     setMotor(-baseSpeed - 20, -baseSpeed - 20);
   else if (lastCmd == 'L')
-    setMotor(-180, 180); // Fast Left Turn
+    setMotor(180, -180); // Fast Left Turn
   else if (lastCmd == 'R')
-    setMotor(180, -180); // Fast Right Turn
+    setMotor(-180, 180); // Fast Right Turn
   else
     setMotor(0, 0);
 }
